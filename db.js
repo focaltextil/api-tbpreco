@@ -55,11 +55,33 @@ async function listar_user() {
   
   });
 
+// ----------------------------------------------------------------------------------------
+
+app.post('/orcamentos', async (req, res) => {
+  const { data, rep, cliente, total, desconto1, desconto2, desconto3 } = req.body;
+
+  const insertQuery = `
+    INSERT INTO tembo."ORCAMENTOS" 
+      ("DATA", "REP", "CLIENTE", "TOTAL", "DESCONTO 1", "DESCONTO 2", "DESCONTO 3", "STATUS")
+    VALUES ($1, $2, $3, $4, $5, $6, $7, 'Aguardando Aprovação')
+    RETURNING *;
+  `;
+
+  const values = [data, rep, cliente, total, desconto1, desconto2, desconto3];
+
+  try {
+    const result = await pool.query(insertQuery, values);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error("Erro ao inserir dados na tabela ORCAMENTOS:", error);
+    res.status(500).json({ error: "Erro ao inserir dados na tabela ORCAMENTOS." });
+  }
+});
 
   
 // ----------------------------------------------------------------------------------------
 // RODANDO NO SERVIDOR - node database.js
 app.listen(3000, () => {
-    console.log('Servidor rodando em http://localhost:3000');
+    console.log('Servidor rodando em http://127.0.0.1:3000');
   });
   
