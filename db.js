@@ -80,6 +80,62 @@ app.post('/orcamentos', async (req, res) => {
 
   
 // ----------------------------------------------------------------------------------------
+// FAZER O INSERT DOS PEDIDOS DA FIMEC
+
+app.post('/order_input', async (req, res) => {
+  const itens = req.body;
+  const client = await pool.connect();
+
+  try {
+      await client.query('BEGIN');
+
+      const { rows } = await client.query("SELECT nextval('tembo.documento_seq') as doc_num");
+      const docNum = rows[0].doc_num;
+
+      const itemQuery = `
+          INSERT INTO tembo."pedidos" 
+          ("DOC_N", "data", "cliente", "cnpj", "endereco", "cidade", "uf", "cep", "nome_contato", 
+          "telefone", "representante", "codigo", "produto", "qtd", "obs_item", "obs_pedido", "status") 
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'Aguardando Confirmação');
+      `;
+
+      // Inserindo cada item do array
+      for (let item of itens) {
+          const itemValues = [
+              docNum,    
+              item.data,
+              item.cliente,
+              item.cnpj,
+              item.endereco,
+              item.cidade,
+              item.uf,
+              item.cep,
+              item.nome_contato,
+              item.telefone,
+              item.representante,
+              item.codigo,
+              item.produto,
+              item.qtd,
+              item.obs_item,
+              item.obs_pedido
+          ];
+
+          await client.query(itemQuery, itemValues);
+      }
+
+      await client.query('COMMIT'); // Confirma a transação
+      res.status(201).json({ message: 'Pedido inserido com sucesso!' });
+  } catch (error) {
+      await client.query('ROLLBACK'); // Desfaz a transação em caso de erro
+      console.error("Erro ao inserir Pedido", error);
+      res.status(500).json({ error: "Erro ao inserir Pedido." });
+  } finally {
+      client.release();
+  }
+});
+
+  
+// ----------------------------------------------------------------------------------------
 // RODANDO NO SERVIDOR - node database.js
 app.listen(3000, () => {
     console.log('Servidor rodando em http://127.0.0.1:3000');
