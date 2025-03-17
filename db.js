@@ -96,7 +96,7 @@ app.post('/order_input', async (req, res) => {
           INSERT INTO tembo."pedidos" 
           ("DOC_N", "data", "cliente", "cnpj", "endereco", "cidade", "uf", "cep", "nome_contato", 
           "telefone", "representante", "codigo", "produto", "qtd", "obs_item", "obs_pedido", "status") 
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'Aguardando Confirmação');
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'Aguardando Digitação');
       `;
 
       // Inserindo cada item do array
