@@ -33,12 +33,12 @@ const corsOptions = {
   app.use(cors(corsOptions));
 
 // --------------------------------------------------------------------------------------
-// TABELA DE USUARIOS
+// TABELA DE PEDIDOS
 
-async function listar_user() {
+async function GetPedidos() {
     try {
       const client = await pool.connect();
-      const result = await client.query('select * from tembo."USER"');
+      const result = await client.query('select * from tembo."pedidos"');
   
       const dadosArray = result.rows;
       client.release();
@@ -49,36 +49,13 @@ async function listar_user() {
     }
   }
   
-  app.get('/users', async (req, res) => {
-    const dadosArray = await listar_user();
+  app.get('/orders', async (req, res) => {
+    const dadosArray = await GetPedidos();
     res.json(dadosArray);
   
   });
 
-// ----------------------------------------------------------------------------------------
 
-app.post('/orcamentos', async (req, res) => {
-  const { data, rep, cliente, total, desconto1, desconto2, desconto3 } = req.body;
-
-  const insertQuery = `
-    INSERT INTO tembo."ORCAMENTOS" 
-      ("DATA", "REP", "CLIENTE", "TOTAL", "DESCONTO 1", "DESCONTO 2", "DESCONTO 3", "STATUS")
-    VALUES ($1, $2, $3, $4, $5, $6, $7, 'Aguardando Aprovação')
-    RETURNING *;
-  `;
-
-  const values = [data, rep, cliente, total, desconto1, desconto2, desconto3];
-
-  try {
-    const result = await pool.query(insertQuery, values);
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    console.error("Erro ao inserir dados na tabela ORCAMENTOS:", error);
-    res.status(500).json({ error: "Erro ao inserir dados na tabela ORCAMENTOS." });
-  }
-});
-
-  
 // ----------------------------------------------------------------------------------------
 // FAZER O INSERT DOS PEDIDOS DA FIMEC
 
@@ -95,8 +72,8 @@ app.post('/order_input', async (req, res) => {
       const itemQuery = `
           INSERT INTO tembo."pedidos" 
           ("DOC_N", "data", "cliente", "cnpj", "endereco", "cidade", "uf", "cep", "nome_contato", 
-          "telefone", "representante", "codigo", "produto", "qtd", "obs_item", "obs_pedido", "status") 
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'Aguardando Digitação');
+          "telefone", "representante", "codigo", "produto", "qtd", "obs_item", "obs_pedido", "status","metodo_pagamento") 
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'Aguardando Digitação', $17);
       `;
 
       // Inserindo cada item do array
@@ -117,16 +94,17 @@ app.post('/order_input', async (req, res) => {
               item.produto,
               item.qtd,
               item.obs_item,
-              item.obs_pedido
+              item.obs_pedido,
+              item.metodo_pagamento,
           ];
 
           await client.query(itemQuery, itemValues);
       }
 
-      await client.query('COMMIT'); // Confirma a transação
+      await client.query('COMMIT');
       res.status(201).json({ message: 'Pedido inserido com sucesso!' });
   } catch (error) {
-      await client.query('ROLLBACK'); // Desfaz a transação em caso de erro
+      await client.query('ROLLBACK');
       console.error("Erro ao inserir Pedido", error);
       res.status(500).json({ error: "Erro ao inserir Pedido." });
   } finally {
@@ -137,7 +115,7 @@ app.post('/order_input', async (req, res) => {
   
 // ----------------------------------------------------------------------------------------
 // RODANDO NO SERVIDOR - node database.js
-app.listen(3000, () => {
-    console.log('Servidor rodando em http://127.0.0.1:3000');
+app.listen(65000, () => {
+    console.log('Servidor rodando em http://127.0.0.1:65000');
   });
   
