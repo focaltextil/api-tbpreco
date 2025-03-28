@@ -112,6 +112,30 @@ app.post('/order_input', async (req, res) => {
   }
 });
 
+// --------------------------------------------------------------------------------------
+// TABELA DA AGENDA
+
+async function GetAgenda() {
+  try {
+    const client = await pool.connect();
+    const result = await client.query('select * from tembo."agenda"');
+
+    const dadosArray = result.rows;
+    client.release();
+    return dadosArray;
+  } catch (error) {
+    console.error('Erro ao conectar ou consultar o PostgreSQL:', error);
+    return [];
+  }
+}
+
+app.get('/horarios', async (req, res) => {
+  const dadosArray = await GetAgenda();
+  res.json(dadosArray);
+
+});
+
+
   
 // ----------------------------------------------------------------------------------------
 // RODANDO NO SERVIDOR - node database.js
