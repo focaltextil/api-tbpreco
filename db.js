@@ -150,7 +150,7 @@ app.post('/reserva_input', async (req, res) => {
       const docNum = rows[0].id;
 
       const itemQuery = `
-          INSERT INTO tembo.pedidos 
+          INSERT INTO tembo.salas 
           (sala, nome, data, hora_inicio, hora_fim) 
           VALUES ($1, $2, $3, $4, $5, "id");
       `;
