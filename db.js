@@ -147,7 +147,7 @@ app.post('/reserva_input', async (req, res) => {
 
       // Obtendo o próximo valor da sequência para o ID
       const { rows } = await client.query("SELECT nextval('tembo.salas_id_seq') as id");
-      const docNum = rows[0].id;
+      const IdNum = rows[0].id;
 
       // Query corrigida: inserindo o valor correto para o ID
       const itemQuery = `
@@ -164,7 +164,7 @@ app.post('/reserva_input', async (req, res) => {
               item.data,
               item.hora_inicio,
               item.hora_fim,
-              docNum, // Passando o valor correto para o ID
+              IdNum,
           ];
 
           await client.query(itemQuery, itemValues);
