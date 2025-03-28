@@ -135,6 +135,51 @@ app.get('/horarios', async (req, res) => {
 
 });
 
+// ----------------------------------------------------------------------------------------
+// INSERIR RESERVA
+
+app.post('/reserva_input', async (req, res) => {
+  const itens = req.body;
+  const client = await pool.connect();
+
+  try {
+      await client.query('BEGIN');
+
+      // Gerando o próximo ID da sequência corretamente
+      const { rows } = await client.query("SELECT nextval('tembo.salas_id_seq') as id");
+      const docNum = rows[0].id; // Correção aqui
+
+      const itemQuery = `
+          INSERT INTO tembo.pedidos 
+          (sala, nome, data, hora_inicio, hora_fim) 
+          VALUES ($1, $2, $3, $4, $5, "id");
+      `;
+
+      for (let item of itens) {
+          const itemValues = [
+              item.sala,
+              item.nome,
+              item.data,
+              item.hora_inicio,
+              item.hora_fim,
+              docNum, 
+          ];
+
+          await client.query(itemQuery, itemValues);
+      }
+
+      await client.query('COMMIT');
+      res.status(201).json({ message: 'Reserva inserida com sucesso!' });
+
+  } catch (error) {
+      await client.query('ROLLBACK');
+      console.error("Erro ao inserir Reserva:", error);
+      res.status(500).json({ error: "Erro ao inserir Reserva." });
+
+  } finally {
+      client.release();
+  }
+});
 
   
 // ----------------------------------------------------------------------------------------
