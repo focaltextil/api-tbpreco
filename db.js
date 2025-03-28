@@ -145,9 +145,9 @@ app.post('/reserva_input', async (req, res) => {
   try {
       await client.query('BEGIN');
 
-      // Gerando o próximo ID da sequência corretamente
+
       const { rows } = await client.query("SELECT nextval('tembo.salas_id_seq') as id");
-      const docNum = rows[0].id; // Correção aqui
+      const docNum = rows[0].id;
 
       const itemQuery = `
           INSERT INTO tembo.pedidos 
