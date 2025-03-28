@@ -118,7 +118,7 @@ app.post('/order_input', async (req, res) => {
 async function GetAgenda() {
   try {
     const client = await pool.connect();
-    const result = await client.query('select * from tembo."agenda"');
+    const result = await client.query('select * from tembo."salas"');
 
     const dadosArray = result.rows;
     client.release();
@@ -139,32 +139,31 @@ app.get('/horarios', async (req, res) => {
 // INSERIR RESERVA
 
 app.post('/reserva_input', async (req, res) => {
-  const itens = req.body;
+  const itens = req.body; // O array de itens de reserva
   const client = await pool.connect();
 
   try {
       await client.query('BEGIN');
 
-      // Obtendo o próximo valor da sequência para o ID
+      // Gerar próximo valor da sequência para o id
       const { rows } = await client.query("SELECT nextval('tembo.salas_id_seq') as IdNum");
       const IdNum = rows[0].id;
 
-      // Query corrigida: inserindo o valor correto para o ID
+      // Query de inserção
       const itemQuery = `
           INSERT INTO tembo.salas 
           (sala, nome, data, hora_inicio, hora_fim, id) 
-          VALUES ($1, $2, $3, $4, $5, );
+          VALUES ($1, $2, $3, $4, $5, $6);
       `;
 
-      // Inserir cada item da reserva
       for (let item of itens) {
           const itemValues = [
               item.sala,
               item.nome,
               item.data,
-              item.hora_inicio,
-              item.hora_fim,
-              IdNum,
+              item.hora_inicio, // Verifique se o valor está no formato correto "HH:MM"
+              item.hora_fim,    // Verifique se o valor está no formato correto "HH:MM"
+              IdNum
           ];
 
           await client.query(itemQuery, itemValues);
@@ -172,12 +171,10 @@ app.post('/reserva_input', async (req, res) => {
 
       await client.query('COMMIT');
       res.status(201).json({ message: 'Reserva inserida com sucesso!' });
-
   } catch (error) {
       await client.query('ROLLBACK');
       console.error("Erro ao inserir Reserva:", error);
       res.status(500).json({ error: "Erro ao inserir Reserva." });
-
   } finally {
       client.release();
   }
