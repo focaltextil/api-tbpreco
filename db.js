@@ -145,16 +145,18 @@ app.post('/reserva_input', async (req, res) => {
   try {
       await client.query('BEGIN');
 
-
+      // Obtendo o próximo valor da sequência para o ID
       const { rows } = await client.query("SELECT nextval('tembo.salas_id_seq') as id");
       const docNum = rows[0].id;
 
+      // Query corrigida: inserindo o valor correto para o ID
       const itemQuery = `
           INSERT INTO tembo.salas 
-          (sala, nome, data, hora_inicio, hora_fim) 
-          VALUES ($1, $2, $3, $4, $5, "id");
+          (sala, nome, data, hora_inicio, hora_fim, id) 
+          VALUES ($1, $2, $3, $4, $5, $6);
       `;
 
+      // Inserir cada item da reserva
       for (let item of itens) {
           const itemValues = [
               item.sala,
@@ -162,7 +164,7 @@ app.post('/reserva_input', async (req, res) => {
               item.data,
               item.hora_inicio,
               item.hora_fim,
-              docNum, 
+              docNum, // Passando o valor correto para o ID
           ];
 
           await client.query(itemQuery, itemValues);
@@ -180,6 +182,7 @@ app.post('/reserva_input', async (req, res) => {
       client.release();
   }
 });
+
 
   
 // ----------------------------------------------------------------------------------------
