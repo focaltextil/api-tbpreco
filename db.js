@@ -139,47 +139,46 @@ app.get('/horarios', async (req, res) => {
 // INSERIR RESERVA
 
 app.post('/reserva_input', async (req, res) => {
-  const itens = req.body; // O array de itens de reserva
+  const { nome, sala, data, hora_inicio, hora_fim } = req.body;
+
+  // Verifica se todos os campos obrigatórios foram preenchidos
+  if (!nome || !sala || !data || !hora_inicio || !hora_fim) {
+      return res.status(400).json({ error: "Todos os campos são obrigatórios!" });
+  }
+
   const client = await pool.connect();
-
   try {
-      await client.query('BEGIN');
+      await client.query('BEGIN');  // Inicia a transação
 
-      // Gerar próximo valor da sequência para o id
-      const { rows } = await client.query("SELECT nextval('tembo.salas_id_seq') as IdNum");
-      const IdNum = rows[0].id;
+      console.log("🔹 Recebendo dados da reserva:", req.body);
 
-      // Query de inserção
-      const itemQuery = `
-          INSERT INTO tembo.salas 
-          (sala, nome, data, hora_inicio, hora_fim, id) 
-          VALUES ($1, $2, $3, $4, $5, $6);
+      const query = `
+          INSERT INTO tembo.salas (sala, nome, data, hora_inicio, hora_fim) 
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING id;
       `;
+      const values = [sala, nome, data, hora_inicio, hora_fim];
 
-      for (let item of itens) {
-          const itemValues = [
-              item.sala,
-              item.nome,
-              item.data,
-              item.hora_inicio, // Verifique se o valor está no formato correto "HH:MM"
-              item.hora_fim,    // Verifique se o valor está no formato correto "HH:MM"
-              IdNum
-          ];
+      // Executa a query para inserir a reserva
+      const { rows } = await client.query(query, values);
 
-          await client.query(itemQuery, itemValues);
-      }
-
+      // Comita a transação
       await client.query('COMMIT');
-      res.status(201).json({ message: 'Reserva inserida com sucesso!' });
+
+      // Retorna sucesso
+      res.status(201).json({ message: "Reserva inserida com sucesso!", id: rows[0].id });
   } catch (error) {
+      // Caso haja erro, faz o rollback da transação
       await client.query('ROLLBACK');
-      console.error("Erro ao inserir Reserva:", error);
-      res.status(500).json({ error: "Erro ao inserir Reserva." });
+      console.error("❌ Erro ao inserir reserva:", error);
+
+      // Retorna um erro genérico para o cliente
+      res.status(500).json({ error: "Erro ao inserir a reserva. Tente novamente mais tarde." });
   } finally {
+      // Libera a conexão com o banco de dados
       client.release();
   }
 });
-
 
   
 // ----------------------------------------------------------------------------------------
