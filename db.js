@@ -141,41 +141,35 @@ app.get('/horarios', async (req, res) => {
 app.post('/reserva_input', async (req, res) => {
   const { nome, sala, data, hora_inicio, hora_fim } = req.body;
 
-  // Verifica se todos os campos obrigatórios foram preenchidos
   if (!nome || !sala || !data || !hora_inicio || !hora_fim) {
       return res.status(400).json({ error: "Todos os campos são obrigatórios!" });
   }
 
   const client = await pool.connect();
   try {
-      await client.query('BEGIN');  // Inicia a transação
+      await client.query('BEGIN');
 
-      console.log("🔹 Recebendo dados da reserva:", req.body);
+      console.log("Dados recebidos:", req.body);
 
       const query = `
           INSERT INTO tembo.salas (sala, nome, data, hora_inicio, hora_fim) 
-          VALUES ($1, $2, $3, $4, $5)
-          RETURNING id;
+          VALUES ($1, $2, $3, $4, $5) RETURNING id;
       `;
       const values = [sala, nome, data, hora_inicio, hora_fim];
+      await client.query(query, values);
 
-      // Executa a query para inserir a reserva
-      const { rows } = await client.query(query, values);
-
-      // Comita a transação
       await client.query('COMMIT');
 
-      // Retorna sucesso
-      res.status(201).json({ message: "Reserva inserida com sucesso!", id: rows[0].id });
-  } catch (error) {
-      // Caso haja erro, faz o rollback da transação
-      await client.query('ROLLBACK');
-      console.error("❌ Erro ao inserir reserva:", error);
+      console.log("Reserva inserida com sucesso!");
+      
+      res.status(201).json({ message: "Reserva inserida com sucesso!" });
 
-      // Retorna um erro genérico para o cliente
+  } catch (error) {
+      await client.query('ROLLBACK');
+      console.error("Erro ao inserir reserva:", error);
       res.status(500).json({ error: "Erro ao inserir a reserva. Tente novamente mais tarde." });
+
   } finally {
-      // Libera a conexão com o banco de dados
       client.release();
   }
 });
