@@ -174,6 +174,34 @@ app.post('/reserva_input', async (req, res) => {
   }
 });
 
+// --------------------------------------------------------------------------------------
+// DELETAR AGENDA
+
+app.delete("/delete_agendamento/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const query = "DELETE FROM tembo.salas WHERE id = ?";
+    
+    pool.query(query, [id], (err, results) => {
+      if (err) {
+        console.error("Erro ao excluir agendamento:", err);
+        return res.status(500).json({ error: "Erro ao excluir agendamento", details: err.sqlMessage || err.message });
+      }
+
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ error: "Agendamento não encontrado" });
+      }
+
+      res.status(200).json({ message: "Agendamento excluído com sucesso!" });
+    });
+
+  } catch (err) {
+    console.error("Erro ao processar a requisição:", err);
+    res.status(500).json({ error: "Erro ao processar a requisição", details: err.message });
+  }
+});
+
   
 // ----------------------------------------------------------------------------------------
 // RODANDO NO SERVIDOR - node database.js
