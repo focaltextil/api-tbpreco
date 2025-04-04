@@ -139,9 +139,9 @@ app.get('/horarios', async (req, res) => {
 // INSERIR RESERVA
 
 app.post('/reserva_input', async (req, res) => {
-  const { nome, sala, data, hora_inicio, hora_fim } = req.body;
+  const { nome, sala, data, hora_inicio, hora_fim,titulo } = req.body;
 
-  if (!nome || !sala || !data || !hora_inicio || !hora_fim) {
+  if (!nome || !sala || !data || !hora_inicio || !hora_fim || !titulo) {
       return res.status(400).json({ error: "Todos os campos são obrigatórios!" });
   }
 
