@@ -152,10 +152,10 @@ app.post('/reserva_input', async (req, res) => {
       console.log("Dados recebidos:", req.body);
 
       const query = `
-          INSERT INTO tembo.salas (sala, nome, data, hora_inicio, hora_fim) 
-          VALUES ($1, $2, $3, $4, $5) RETURNING id;
+          INSERT INTO tembo.salas (sala, nome, data, hora_inicio, hora_fim, titulo) 
+          VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;
       `;
-      const values = [sala, nome, data, hora_inicio, hora_fim];
+      const values = [sala, nome, data, hora_inicio, hora_fim, titulo];
       await client.query(query, values);
 
       await client.query('COMMIT');
