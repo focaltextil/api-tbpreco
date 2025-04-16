@@ -27,7 +27,7 @@ const pool = new Pool({
 // PERMISSOES DO SITE
 const corsOptions = {
     origin: "*",
-    methods: 'GET,POST',
+    methods: 'GET,POST,DELETE',
   };
   
   app.use(cors(corsOptions));
